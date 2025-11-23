@@ -21,7 +21,8 @@ def load_model_artifacts():
         return model, vectorizer
     except FileNotFoundError as e:
         print(f"Error: Model files not found. Please run train_model.py first.")
-        print(f"Missing file: {e.filename}")
+        filename = getattr(e, 'filename', 'Unknown file')
+        print(f"Missing file: {filename}")
         sys.exit(1)
 
 

@@ -26,7 +26,7 @@ from datetime import datetime
 def load_data(file_path='fraud_email_.csv'):
     """Load the email dataset"""
     print(f"Loading data from {file_path}...")
-    df = pd.read_csv(file_path, encoding='utf-8', on_bad_lines='skip')
+    df = pd.read_csv(file_path, encoding='utf-8', on_bad_lines='warn')
     print(f"Total samples: {len(df)}")
     print(f"Fraud emails (1): {(df['Class'] == 1).sum()}")
     print(f"Legitimate emails (0): {(df['Class'] == 0).sum()}")
