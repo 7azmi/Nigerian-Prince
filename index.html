@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigerian Prince Fraud Email Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 200px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .result-box {
+            margin-top: 25px;
+            padding: 25px;
+            border-radius: 15px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-fraud {
+            background: #fff5f5;
+            border: 3px solid #dc3545;
+        }
+
+        .result-legitimate {
+            background: #f0fff4;
+            border: 3px solid #28a745;
+        }
+
+        .result-header {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-fraud .result-header {
+            color: #dc3545;
+        }
+
+        .result-legitimate .result-header {
+            color: #28a745;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .confidence-bar {
+            margin: 20px 0;
+        }
+
+        .confidence-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fraud {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+
+        .progress-legitimate {
+            background: linear-gradient(90deg, #28a745, #218838);
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .probability-item {
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .probability-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .probability-value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .fraud-value {
+            color: #dc3545;
+        }
+
+        .legitimate-value {
+            color: #28a745;
+        }
+
+        .warning-message {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            color: #856404;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .example-btn {
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .probabilities {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Email Fraud Detector</h1>
+        <p class="subtitle">Nigerian Prince Scam Detection powered by Random Forest ML</p>
+
+        <div class="info-box">
+            <h3>About This Tool</h3>
+            <p>This machine learning model detects fraudulent emails with high accuracy using a Random Forest classifier trained on thousands of emails. It analyzes text patterns, language usage, and common fraud indicators to protect you from scams.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="emailText">Enter Email Text:</label>
+            <textarea id="emailText" placeholder="Paste the email content here to check if it's legitimate or fraudulent..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="analyzeEmail()">
+                🔍 Analyze Email
+            </button>
+            <button class="btn-secondary" onclick="clearForm()">
+                🗑️ Clear
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing email...</p>
+        </div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-header">
+                <span class="icon" id="resultIcon"></span>
+                <span id="resultLabel"></span>
+            </div>
+
+            <div class="confidence-bar">
+                <div class="confidence-label">Confidence Level</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="confidenceBar">
+                        <span id="confidenceText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="probabilities">
+                <div class="probability-item">
+                    <div class="probability-label">Fraud Probability</div>
+                    <div class="probability-value fraud-value" id="fraudProb">0%</div>
+                </div>
+                <div class="probability-item">
+                    <div class="probability-label">Legitimate Probability</div>
+                    <div class="probability-value legitimate-value" id="legitProb">0%</div>
+                </div>
+            </div>
+
+            <div class="warning-message" id="warningMessage" style="display: none;"></div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Try Example Emails:</h3>
+            <div class="example-buttons">
+                <button class="example-btn" onclick="loadExample('fraud1')">Inheritance Scam</button>
+                <button class="example-btn" onclick="loadExample('fraud2')">Bank Transfer Fraud</button>
+                <button class="example-btn" onclick="loadExample('legit1')">Work Email</button>
+                <button class="example-btn" onclick="loadExample('legit2')">Meeting Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            fraud1: `Dear Friend,
+
+I am Prince Abubakar from Nigeria. I have $25,000,000 USD that I need to transfer out of my country urgently. I need your help to receive this money in your bank account. You will receive 30% of the total amount for your assistance.
+
+Please send me your bank account details immediately so we can proceed with the transfer. This is a legitimate business opportunity and completely legal.
+
+Time is of the essence. Please respond urgently.
+
+Best regards,
+Prince Abubakar`,
+
+            fraud2: `URGENT ATTENTION REQUIRED
+
+This is the International Monetary Fund. We have attempted to contact you regarding a payment of $5.5 Million USD that is awaiting your collection. 
+
+To claim your funds, you must pay a processing fee of $500 via Western Union immediately. Send the payment details to claim your inheritance.
+
+Your reference number is: IMF-2024-NG-78952
+
+Respond within 24 hours or the funds will be forfeited.
+
+Director General
+IMF Claims Department`,
+
+            legit1: `Hi Team,
+
+Just a quick reminder that our weekly standup meeting is tomorrow at 10 AM. Please come prepared with your progress updates and any blockers you're facing.
+
+Agenda:
+- Sprint progress review
+- Upcoming deadlines
+- Q&A session
+
+See you all tomorrow!
+
+Best,
+Sarah`,
+
+            legit2: `Dear Customer,
+
+Thank you for your recent purchase from our store. Your order #12345 has been shipped and will arrive within 3-5 business days.
+
+You can track your package using the tracking number: 1Z999AA10123456784
+
+If you have any questions, please contact our customer service team at support@company.com.
+
+Best regards,
+Customer Service Team`
+        };
+
+        function loadExample(exampleId) {
+            document.getElementById('emailText').value = examples[exampleId];
+            document.getElementById('resultBox').style.display = 'none';
+        }
+
+        function clearForm() {
+            document.getElementById('emailText').value = '';
+            document.getElementById('resultBox').style.display = 'none';
+        }
+
+        async function analyzeEmail() {
+            const emailText = document.getElementById('emailText').value.trim();
+            
+            if (!emailText) {
+                alert('Please enter some email text to analyze.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email_text: emailText })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Prediction failed');
+                }
+
+                const result = await response.json();
+                displayResult(result);
+
+            } catch (error) {
+                alert('Error: Could not analyze email. Make sure the server is running.');
+                console.error(error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayResult(result) {
+            const resultBox = document.getElementById('resultBox');
+            const resultIcon = document.getElementById('resultIcon');
+            const resultLabel = document.getElementById('resultLabel');
+            const confidenceBar = document.getElementById('confidenceBar');
+            const confidenceText = document.getElementById('confidenceText');
+            const fraudProb = document.getElementById('fraudProb');
+            const legitProb = document.getElementById('legitProb');
+            const warningMessage = document.getElementById('warningMessage');
+
+            const isFraud = result.label === 'FRAUD';
+            const confidence = result.confidence * 100;
+            const fraudProbability = result.fraud_probability * 100;
+            const legitProbability = result.legitimate_probability * 100;
+
+            // Update result box styling
+            resultBox.className = 'result-box';
+            resultBox.classList.add(isFraud ? 'result-fraud' : 'result-legitimate');
+            resultBox.style.display = 'block';
+
+            // Update icon and label
+            resultIcon.textContent = isFraud ? '⚠️' : '✅';
+            resultLabel.textContent = isFraud ? 'FRAUD DETECTED' : 'LEGITIMATE EMAIL';
+
+            // Update confidence bar
+            confidenceBar.className = 'progress-fill';
+            confidenceBar.classList.add(isFraud ? 'progress-fraud' : 'progress-legitimate');
+            confidenceBar.style.width = confidence + '%';
+            confidenceText.textContent = confidence.toFixed(1) + '%';
+
+            // Update probabilities
+            fraudProb.textContent = fraudProbability.toFixed(1) + '%';
+            legitProb.textContent = legitProbability.toFixed(1) + '%';
+
+            // Update warning message
+            if (isFraud) {
+                warningMessage.style.display = 'block';
+                warningMessage.innerHTML = `
+                    <strong>⚠️ Security Warning:</strong><br>
+                    This email has been identified as potentially fraudulent. Do not respond to this email, 
+                    do not click any links, and do not provide any personal or financial information.
+                `;
+            } else {
+                warningMessage.style.display = 'none';
+            }
+        }
+
+        // Enable Enter key to submit (Ctrl+Enter in textarea)
+        document.getElementById('emailText').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                analyzeEmail();
+            }
+        });
+    </script>
+</body>
+</html>
