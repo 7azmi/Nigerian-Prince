@@ -1,2 +1,20 @@
 .idea
 .idea/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Model files (can be regenerated)
+*.pkl
+model_metrics.json
+
+# Flask
+instance/
+.webassets-cache
